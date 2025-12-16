@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Note Finder Troll</title>
+  <style>
+    body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#f6f7fb;color:#111;}
+    .card{width:min(980px,94vw);background:#fff;border:1px solid #e6e8ef;border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.10);padding:18px;}
+    .top{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:10px;}
+    .title{font-size:22px;font-weight:900;}
+    .subtitle{font-size:13px;color:#555;margin-top:4px;}
+    .stats{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .pill{padding:8px 10px;border:1px solid #e6e8ef;border-radius:999px;background:#fafbff;font-size:13px;}
+
+    .row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;}
+    .staffWrap{flex:1 1 560px;border:1px solid #e6e8ef;border-radius:16px;background:#fafbff;padding:14px;position:relative;overflow:hidden;}
+    .controls{flex:1 1 320px;border:1px solid #e6e8ef;border-radius:16px;background:#fff;padding:14px;}
+
+    .controls h3{margin:0 0 10px;font-size:16px;}
+    .btnRow{display:flex;gap:10px;flex-wrap:wrap;}
+    button{cursor:pointer;border:1px solid #e6e8ef;background:#fff;border-radius:12px;padding:10px 12px;font-weight:800;}
+    button:hover{background:#f3f5ff;}
+    .answerGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px;}
+    .answerGrid button{padding:12px 10px;font-size:14px;}
+
+    .msg{margin-top:10px;font-weight:900;min-height:22px;}
+    .msg.ok{color:#12a150;}
+    .msg.bad{color:#d02424;}
+    .hint{font-size:12px;color:#666;margin-top:8px;line-height:1.35;}
+    .toggleRow{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:13px;color:#333;}
+    .toggleRow label{display:flex;gap:8px;align-items:center;cursor:pointer;}
+    input[type="checkbox"]{transform:scale(1.1);}
+    .footer{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap;align-items:center;margin-top:14px;color:#555;font-size:12px;}
+    svg{width:100%;height:auto;display:block;}
+
+    .ghost{position:absolute;font-weight:900;opacity:0;pointer-events:none;text-shadow:0 10px 18px rgba(0,0,0,.15);animation:ghostFloat 1.6s ease-out forwards;}
+    @keyframes ghostFloat{0%{transform:translate(0,0) scale(1);opacity:0;}15%{opacity:.95;}100%{transform:translate(var(--dx),var(--dy)) scale(1.2);opacity:0;}}
+    .overlay{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .18s ease;}
+    .overlay.show{opacity:1;pointer-events:auto;}
+    .panel{width:min(520px,92%);background:#fff;border:1px solid #e6e8ef;border-radius:16px;padding:16px;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.14);}
+    .panel h2{margin:0 0 6px;}
+    .panel p{margin:6px 0;color:#333;}
+    .miniSelect{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:13px;color:#333;}
+    select{border:1px solid #e6e8ef;border-radius:10px;padding:8px 10px;font-weight:700;background:#fff;}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="top">
+      <div>
+        <div class="title">Note Finder Troll 😈</div>
+        <div class="subtitle">Sol/Fa • fallas: armadura más difícil • 3 strikes = fantasmas ♭♯♮ + BOO eterno</div>
+      </div>
+      <div class="stats">
+        <div class="pill">Tiempo: <b id="time">30</b>s</div>
+        <div class="pill">Score: <b id="score">0</b></div>
+        <div class="pill">Strikes: <b id="strikes">0</b>/3</div>
+        <div class="pill">Armadura: <b id="armor">—</b></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="staffWrap" id="arena">
+        <svg viewBox="0 0 780 260" aria-label="Partitura">
+          <g stroke="#111" stroke-width="2" opacity="0.9">
+            <line x1="80" y1="70"  x2="740" y2="70"></line>
+            <line x1="80" y1="90"  x2="740" y2="90"></line>
+            <line x1="80" y1="110" x2="740" y2="110"></line>
+            <line x1="80" y1="130" x2="740" y2="130"></line>
+            <line x1="80" y1="150" x2="740" y2="150"></line>
+          </g>
+          <line x1="80" y1="58" x2="80" y2="162" stroke="#111" stroke-width="2" opacity="0.9"></line>
+
+          <text id="clef" x="98" y="145" font-size="84" font-family="serif">𝄞</text>
+          <g id="keySig"></g>
+
+          <text id="noteAcc" x="330" y="110" font-size="34" font-family="serif" fill="#111" opacity="0">♮</text>
+
+          <g>
+            <ellipse id="noteHead" cx="380" cy="110" rx="14" ry="10" fill="#111"></ellipse>
+            <line id="stem" x1="392" y1="110" x2="392" y2="58" stroke="#111" stroke-width="3"></line>
+            <line id="ledger" x1="360" y1="0" x2="430" y2="0" stroke="#111" stroke-width="2" opacity="0"></line>
+          </g>
+
+          <text x="80" y="220" font-size="12" fill="#666">Atajo: 1–9 para responder (según orden).</text>
+        </svg>
+
+        <div class="overlay" id="overlay">
+          <div class="panel">
+            <h2 id="overTitle">Game Over</h2>
+            <p id="overText"></p>
+            <p><b>Score:</b> <span id="finalScore">0</span></p>
+            <button id="playAgain">Jugar otra vez</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <h3>Responde</h3>
+
+        <div class="btnRow">
+          <button id="start">Iniciar</button>
+          <button id="restart">Reiniciar</button>
+        </div>
+
+        <div class="miniSelect">
+          <span><b>Duración:</b></span>
+          <select id="duration">
+            <option value="30" selected>30 segundos</option>
+            <option value="60">1 minuto</option>
+          </select>
+        </div>
+
+        <div class="toggleRow">
+          <label><input type="checkbox" id="useTreble" checked> Clave de Sol</label>
+          <label><input type="checkbox" id="useBass" checked> Clave de Fa</label>
+        </div>
+
+        <div class="answerGrid" id="answers"></div>
+
+        <div id="msg" class="msg"></div>
+        <div class="hint">
+          - Inicio fácil (sin armadura).<br>
+          - Con strikes: armadura (2 y luego 4 alteraciones).<br>
+          - A veces NO verás ♭/♯ en la nota: manda la armadura (salvo ♮/♭/♯ explícito).
+        </div>
+
+        <div class="footer">
+          <span id="status">Listo.</span>
+          <span style="opacity:.85">Tip: el audio se activa al dar “Iniciar”.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    const timeEl = $("time"), scoreEl = $("score"), strikesEl = $("strikes"), armorEl = $("armor");
+    const msgEl = $("msg"), statusEl = $("status");
+    const startBtn = $("start"), restartBtn = $("restart");
+    const useTrebleEl = $("useTreble"), useBassEl = $("useBass");
+    const durationEl = $("duration");
+    const answersEl = $("answers");
+
+    const arena = $("arena");
+    const overlay = $("overlay");
+    const overTitle = $("overTitle");
+    const overText = $("overText");
+    const finalScoreEl = $("finalScore");
+    const playAgainBtn = $("playAgain");
+
+    const clefEl = $("clef");
+    const noteHead = $("noteHead");
+    const stem = $("stem");
+    const ledger = $("ledger");
+    const noteAcc = $("noteAcc");
+    const keySigG = $("keySig");
+
+    const letterToSolfege = { C:"DO", D:"RE", E:"MI", F:"FA", G:"SOL", A:"LA", B:"SI" };
+
+    let audioCtx = null;
+    function ctx(){ if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === "suspended") audioCtx.resume(); return audioCtx; }
+    function midiToFreq(m){ return 440 * Math.pow(2, (m - 69) / 12); }
+    function makeNoiseBuffer(c, seconds=0.05){ const sr = c.sampleRate; const len = Math.floor(sr * seconds); const buf = c.createBuffer(1, len, sr); const data = buf.getChannelData(0); for (let i=0;i<len;i++){ const env = Math.pow(1 - i/len, 2.5); data[i] = (Math.random()*2 - 1) * env; } return buf; }
+    function playPianoish(midi){ const c = ctx(); const t0 = c.currentTime; const f = midiToFreq(midi); const out = c.createGain(); out.gain.setValueAtTime(0.0001, t0); out.gain.linearRampToValueAtTime(0.10, t0 + 0.02); out.gain.setValueAtTime(0.07, t0 + 0.18); out.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.25); out.connect(c.destination);
+      const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.setValueAtTime(Math.min(5000, f*10), t0); lp.frequency.exponentialRampToValueAtTime(Math.min(2200, f*6), t0 + 0.25); lp.Q.setValueAtTime(0.7, t0); lp.connect(out);
+      const partials = [ {ratio:1.0, type:"sine", gain:0.65, detune:0}, {ratio:2.0, type:"triangle", gain:0.22, detune:-3}, {ratio:3.0, type:"sine", gain:0.12, detune:+4}, {ratio:4.0, type:"sine", gain:0.06, detune:-6}, ];
+      partials.forEach(p => { const o = c.createOscillator(); const g = c.createGain(); o.type = p.type; o.frequency.setValueAtTime(f * p.ratio, t0); o.detune.setValueAtTime(p.detune, t0); g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(p.gain, t0 + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.20); o.connect(g); g.connect(lp); o.start(t0); o.stop(t0 + 1.35); });
+      const noise = c.createBufferSource(); noise.buffer = makeNoiseBuffer(c, 0.03); const ng = c.createGain(); ng.gain.setValueAtTime(0.14, t0); ng.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.06); noise.connect(ng); ng.connect(lp); noise.start(t0); noise.stop(t0 + 0.08); }
+    function playBoo(dur = 1.0){ const c = ctx(); const t0 = c.currentTime; const o = c.createOscillator(); const g = c.createGain(); o.type = "sawtooth"; o.frequency.setValueAtTime(210, t0); o.frequency.exponentialRampToValueAtTime(75, t0 + dur); g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(0.10, t0 + 0.03); g.gain.setValueAtTime(0.07, t0 + dur * 0.45); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur + 0.85);
+      const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.setValueAtTime(900, t0); lp.frequency.exponentialRampToValueAtTime(450, t0 + dur * 0.6); o.connect(g); g.connect(lp); lp.connect(c.destination); o.start(t0); o.stop(t0 + dur + 0.90); }
+    function midiFor(letter, octave, effAcc){ const semis = {C:0,D:2,E:4,F:5,G:7,A:9,B:11}[letter]; return (octave + 1) * 12 + semis + effAcc; }
+
+    let running = false;
+    let locked = false;
+    let timeLeft = 30;
+    let timer = null;
+    let score = 0;
+    let strikes = 0;
+    let difficulty = 0;
+    let keySig = { type: "sharps", count: 0 };
+    let current = null;
+
+    const TREBLE_NOTES = [ {letter:"D",oct:4},{letter:"E",oct:4},{letter:"F",oct:4},{letter:"G",oct:4},{letter:"A",oct:4},{letter:"B",oct:4}, {letter:"C",oct:5},{letter:"D",oct:5},{letter:"E",oct:5},{letter:"F",oct:5},{letter:"G",oct:5} ];
+    const BASS_NOTES = [ {letter:"F",oct:2},{letter:"G",oct:2},{letter:"A",oct:2},{letter:"B",oct:2}, {letter:"C",oct:3},{letter:"D",oct:3},{letter:"E",oct:3},{letter:"F",oct:3},{letter:"G",oct:3},{letter:"A",oct:3},{letter:"B",oct:3} ];
+    const SHARP_ORDER = ["F","C","G","D","A","E","B"];
+    const FLAT_ORDER = ["B","E","A","D","G","C","F"];
+    const TREBLE_SHARP_OCT = [5,5,4,5,4,5,4];
+    const TREBLE_FLAT_OCT = [4,5,4,5,4,5,4];
+    const BASS_SHARP_OCT = [3,3,2,3,2,3,2];
+    const BASS_FLAT_OCT = [2,3,2,3,2,3,2];
+    const ANSWER_POOL = [ "DO","DO♯", "RE♭","RE","RE♯", "MI♭","MI", "FA","FA♯", "SOL♭","SOL","SOL♯", "LA♭","LA","LA♯", "SI♭","SI", "DO♮","RE♮","MI♮","FA♮","SOL♮","LA♮","SI♮" ];
+
+    function randInt(n){ return Math.floor(Math.random() * n); }
+    function pick(arr){ return arr[randInt(arr.length)]; }
+    function clamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
+    function diatonicIndex(letter){ return {C:0,D:1,E:2,F:3,G:4,A:5,B:6}[letter]; }
+
+    function yForNote(clef, letter, octave){ const ref = (clef === "treble") ? {letter:"E",oct:4,y:150} : {letter:"G",oct:2,y:150}; const stepsPerOctave = 7; const refSteps = diatonicIndex(ref.letter) + ref.oct*stepsPerOctave; const noteSteps = diatonicIndex(letter) + octave*stepsPerOctave; return ref.y - (noteSteps - refSteps) * 10; }
+
+    function setClef(clef){ clefEl.textContent = (clef === "treble") ? "𝄞" : "𝄢"; clefEl.setAttribute("y", (clef === "treble") ? "145" : "132"); clefEl.setAttribute("font-size", (clef === "treble") ? "84" : "74"); }
+    function setLedger(y){ const needs = (y < 70) || (y > 150); if (!needs){ ledger.style.opacity="0"; ledger.setAttribute("stroke","#111"); return; } const nearestLine = Math.round((y - 70)/20)*20 + 70; ledger.setAttribute("y1", String(nearestLine)); ledger.setAttribute("y2", String(nearestLine)); ledger.style.opacity="1"; }
+    function setNoteVisual(clef, letter, oct){ const y = yForNote(clef, letter, oct); noteHead.setAttribute("cy", String(y)); const midY = 110; if (y <= midY){ stem.setAttribute("x1","368"); stem.setAttribute("x2","368"); stem.setAttribute("y1",String(y)); stem.setAttribute("y2",String(y+55)); } else { stem.setAttribute("x1","392"); stem.setAttribute("x2","392"); stem.setAttribute("y1",String(y)); stem.setAttribute("y2",String(y-55)); } setLedger(y); noteAcc.setAttribute("y", String(y + 10)); }
+    function setNoteColor(color){ noteHead.setAttribute("fill", color); stem.setAttribute("stroke", color); ledger.setAttribute("stroke", ledger.style.opacity==="0" ? "#111" : color); noteAcc.setAttribute("fill", color); }
+    function resetNoteInk(){ setNoteColor("#111"); noteAcc.style.opacity="0"; noteAcc.textContent="♮"; ledger.setAttribute("stroke", "#111"); }
+
+    function buildPool(){ const pool = []; if (useTrebleEl.checked) pool.push(...TREBLE_NOTES.map(n=>({...n, clef:"treble"}))); if (useBassEl.checked) pool.push(...BASS_NOTES.map(n=>({...n, clef:"bass"}))); if (pool.length===0){ useTrebleEl.checked = true; pool.push(...TREBLE_NOTES.map(n=>({...n,clef:"treble"}))); } return pool; }
+    function accFromKey(letter){ if (keySig.count===0) return 0; if (keySig.type==="sharps") return SHARP_ORDER.slice(0,keySig.count).includes(letter) ? +1 : 0; return FLAT_ORDER.slice(0,keySig.count).includes(letter) ? -1 : 0; }
+    function allowedOverrides(letter){ if (letter==="E" || letter==="B") return [-1,0]; if (letter==="C" || letter==="F") return [0,+1]; return [-1,0,+1]; }
+    function symbolForAcc(a){ return a===+1?"♯":a===-1?"♭":a===0?"♮":""; }
+    function labelFor(letter, effAcc){ const base = letterToSolfege[letter]; if (effAcc===0) return base; return base + (effAcc===+1 ? "♯" : "♭"); }
+    function labelForExplicitNatural(letter){ return letterToSolfege[letter] + "♮"; }
+    function armorText(){ if (difficulty===0 || keySig.count===0) return "—"; return keySig.type==="sharps" ? `${keySig.count} ♯` : `${keySig.count} ♭`; }
+    function setKeySignatureVisual(clef){ keySigG.innerHTML=""; if (keySig.count===0) return; const isSharps = keySig.type==="sharps"; const letters = isSharps ? SHARP_ORDER : FLAT_ORDER; const octs = (clef==="treble") ? (isSharps ? TREBLE_SHARP_OCT : TREBLE_FLAT_OCT) : (isSharps ? BASS_SHARP_OCT : BASS_FLAT_OCT); const startX=150, stepX=16; for (let i=0;i<keySig.count;i++){ const L = letters[i]; const y = yForNote(clef, L, octs[i]); const t = document.createElementNS("http://www.w3.org/2000/svg","text"); t.setAttribute("x", String(startX + i*stepX)); t.setAttribute("y", String(y + 10)); t.setAttribute("font-size","30"); t.setAttribute("font-family","serif"); t.setAttribute("fill","#111"); t.textContent = isSharps ? "♯" : "♭"; keySigG.appendChild(t); } }
+    function buildChoices(correctLabel){ const set = new Set([correctLabel]); while (set.size < 9) set.add(pick(ANSWER_POOL)); const arr = Array.from(set); for (let i=arr.length-1;i>0;i--){ const j = randInt(i+1); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+    function renderAnswers(choices){ answersEl.innerHTML=""; choices.forEach((c,idx)=>{ const b=document.createElement("button"); b.textContent=c; b.title=`Tecla ${idx+1}`; b.disabled=!running; b.addEventListener("click",()=>answer(c)); answersEl.appendChild(b); }); }
+    function pickNewKeySig(count){ keySig = { type: (Math.random()<0.5 ? "sharps" : "flats"), count }; }
+    function applyTrollDifficulty(){ difficulty = clamp(strikes, 0, 2); if (difficulty===0) keySig = {type:"sharps",count:0}; else if (difficulty===1) pickNewKeySig(2); else pickNewKeySig(4); }
+    function nextQuestion(){ const pool = buildPool(); const n = pick(pool); setClef(n.clef); setKeySignatureVisual(n.clef); armorEl.textContent = armorText(); const baseAcc = accFromKey(n.letter); const pOverride = difficulty===0 ? 0.0 : (difficulty===1 ? 0.35 : 0.60); let overrideAcc = null; if (Math.random() < pOverride) overrideAcc = pick(allowedOverrides(n.letter)); const effAcc = (overrideAcc===null) ? baseAcc : overrideAcc; let shownAcc = ""; if (overrideAcc!==null && overrideAcc!==baseAcc) shownAcc = symbolForAcc(overrideAcc);
+      const answerLabel = (shownAcc==="♮") ? labelForExplicitNatural(n.letter) : labelFor(n.letter, effAcc);
+      current = { clef: n.clef, letter: n.letter, octave: n.oct, baseAcc, overrideAcc, shownAcc, effAcc, answerLabel, midi: midiFor(n.letter, n.oct, effAcc) };
+      setNoteVisual(n.clef, n.letter, n.oct); resetNoteInk(); if (shownAcc){ noteAcc.textContent = shownAcc; noteAcc.style.opacity = "1"; } else { noteAcc.style.opacity = "0"; }
+      renderAnswers(buildChoices(current.answerLabel)); msgEl.textContent=""; msgEl.className="msg"; statusEl.textContent="¿Qué nota es?";
+    }
+    function updateUI(){ timeEl.textContent = timeLeft; scoreEl.textContent = score; strikesEl.textContent = strikes; armorEl.textContent = armorText(); }
+    function setRunning(v){ running = v; [...answersEl.querySelectorAll("button")].forEach(b => b.disabled = !v); }
+    function spawnGhostStorm(){ const symbols=["♭","♯","♮"]; const count=54; for (let i=0;i<count;i++){ const g=document.createElement("div"); g.className="ghost"; g.textContent=symbols[randInt(symbols.length)]; const w=arena.clientWidth, h=arena.clientHeight; g.style.left=randInt(w)+"px"; g.style.top=randInt(h)+"px"; g.style.fontSize=(16+randInt(32))+"px"; g.style.color=`hsl(${randInt(360)} 85% 45%)`; g.style.setProperty("--dx",(randInt(260)-130)+"px"); g.style.setProperty("--dy",(randInt(260)-180)+"px"); g.style.animationDelay=(Math.random()*0.9)+"s"; arena.appendChild(g); setTimeout(()=>g.remove(),2300); } }
+    function endGame(reason){ clearInterval(timer); timer=null; setRunning(false); locked=true; finalScoreEl.textContent = score; if (reason==="strikes"){ overTitle.textContent="💀 Te trolearon"; overText.textContent="3 strikes. La armadura ganó. Llegó el terror de ♭♯♮…"; spawnGhostStorm(); setTimeout(spawnGhostStorm, 400); playBoo(3.2); setTimeout(()=>playBoo(2.8), 700); setTimeout(()=>playBoo(2.4), 1400); } else { overTitle.textContent="⏱️ Tiempo"; overText.textContent="Se acabó el tiempo. ¡Bien jugado!"; } overlay.classList.add("show"); }
+    function startGame(){ ctx(); clearInterval(timer); timer=null; overlay.classList.remove("show"); score=0; strikes=0; difficulty=0; keySig={type:"sharps",count:0}; locked=false; const total = Number(durationEl.value || "30"); timeLeft = total; setRunning(true); updateUI(); nextQuestion(); timer = setInterval(()=>{ timeLeft--; updateUI(); if (timeLeft<=0) endGame("time"); }, 1000); }
+    function flash(color){ setNoteColor(color); setTimeout(()=>{ setNoteColor("#111"); noteAcc.setAttribute("fill","#111"); ledger.setAttribute("stroke","#111"); }, 240); }
+    function answer(chosen){ if (!running || !current || locked) return; locked=true; const ok = (chosen === current.answerLabel); if (ok){ score += 1; msgEl.textContent="✅ Bien."; msgEl.className="msg ok"; statusEl.textContent="Sigue."; flash("#12a150"); playPianoish(current.midi); setTimeout(()=>{ locked=false; if (running) nextQuestion(); }, 380); } else { strikes += 1; score = Math.max(0, score - 1); msgEl.textContent=`❌ Nope. Era ${current.answerLabel}. +1 strike 😈`;
+        msgEl.className="msg bad"; statusEl.textContent="Armadura subiendo…"; flash("#d02424"); playBoo(1.2); applyTrollDifficulty(); updateUI(); setTimeout(()=>{ if (strikes>=3){ endGame("strikes"); return; } locked=false; if (running) nextQuestion(); }, 560); }
+      updateUI(); }
+    window.addEventListener("keydown",(e)=>{ const k=e.key; if (!running || locked) return; if (k>="1" && k<="9"){ const idx=Number(k)-1; const btn=answersEl.querySelectorAll("button")[idx]; if (btn) btn.click(); } });
+    startBtn.addEventListener("click", startGame);
+    restartBtn.addEventListener("click", startGame);
+    playAgainBtn.addEventListener("click", startGame);
+    useTrebleEl.addEventListener("change", ()=>{ if (running && !locked) nextQuestion(); });
+    useBassEl.addEventListener("change", ()=>{ if (running && !locked) nextQuestion(); });
+    setRunning(false);
+    updateUI();
+    setClef("treble");
+    setNoteVisual("treble","E",4);
+    resetNoteInk();
+  </script>
+</body>
+</html>
