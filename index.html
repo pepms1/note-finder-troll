@@ -34,7 +34,7 @@
     .footer{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap;align-items:center;margin-top:14px;color:#555;font-size:12px;}
     svg{width:100%;height:auto;display:block;}
 
-    .ghost{position:absolute;font-weight:900;opacity:0;pointer-events:none;text-shadow:0 10px 18px rgba(0,0,0,.15);animation:ghostFloat 1.6s ease-out forwards;}
+    .ghost{position:fixed;font-weight:900;opacity:0;pointer-events:none;text-shadow:0 10px 18px rgba(0,0,0,.15);animation:ghostFloat 1.6s ease-out forwards;}
     @keyframes ghostFloat{0%{transform:translate(0,0) scale(1);opacity:0;}15%{opacity:.95;}100%{transform:translate(var(--dx),var(--dy)) scale(1.2);opacity:0;}}
     .overlay{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .18s ease;}
     .overlay.show{opacity:1;pointer-events:auto;}
@@ -226,7 +226,7 @@
     }
     function updateUI(){ timeEl.textContent = timeLeft; scoreEl.textContent = score; strikesEl.textContent = strikes; armorEl.textContent = armorText(); }
     function setRunning(v){ running = v; [...answersEl.querySelectorAll("button")].forEach(b => b.disabled = !v); }
-    function spawnGhostStorm(){ const symbols=["♭","♯","♮"]; const count=54; for (let i=0;i<count;i++){ const g=document.createElement("div"); g.className="ghost"; g.textContent=symbols[randInt(symbols.length)]; const w=arena.clientWidth, h=arena.clientHeight; g.style.left=randInt(w)+"px"; g.style.top=randInt(h)+"px"; g.style.fontSize=(16+randInt(32))+"px"; g.style.color=`hsl(${randInt(360)} 85% 45%)`; g.style.setProperty("--dx",(randInt(260)-130)+"px"); g.style.setProperty("--dy",(randInt(260)-180)+"px"); g.style.animationDelay=(Math.random()*0.9)+"s"; arena.appendChild(g); setTimeout(()=>g.remove(),2300); } }
+    function spawnGhostStorm(){ const symbols=["♭","♯","♮"]; const count=54; const target=document.body; const w=window.innerWidth, h=window.innerHeight; for (let i=0;i<count;i++){ const g=document.createElement("div"); g.className="ghost"; g.textContent=symbols[randInt(symbols.length)]; g.style.left=randInt(w)+"px"; g.style.top=randInt(h)+"px"; g.style.fontSize=(16+randInt(32))+"px"; g.style.color=`hsl(${randInt(360)} 85% 45%)`; g.style.setProperty("--dx",(randInt(260)-130)+"px"); g.style.setProperty("--dy",(randInt(260)-180)+"px"); g.style.animationDelay=(Math.random()*0.9)+"s"; target.appendChild(g); setTimeout(()=>g.remove(),2300); } }
     function endGame(reason){ clearInterval(timer); timer=null; setRunning(false); locked=true; finalScoreEl.textContent = score; if (reason==="strikes"){ overTitle.textContent="💀 Te trolearon"; overText.textContent="3 strikes. La armadura ganó. Llegó el terror de ♭♯♮…"; spawnGhostStorm(); setTimeout(spawnGhostStorm, 400); playBoo(3.2); setTimeout(()=>playBoo(2.8), 700); setTimeout(()=>playBoo(2.4), 1400); } else { overTitle.textContent="⏱️ Tiempo"; overText.textContent="Se acabó el tiempo. ¡Bien jugado!"; } overlay.classList.add("show"); }
     function startGame(){ ctx(); clearInterval(timer); timer=null; overlay.classList.remove("show"); score=0; strikes=0; difficulty=0; keySig={type:"sharps",count:0}; locked=false; const total = Number(durationEl.value || "30"); timeLeft = total; setRunning(true); updateUI(); nextQuestion(); timer = setInterval(()=>{ timeLeft--; updateUI(); if (timeLeft<=0) endGame("time"); }, 1000); }
     function flash(color){ setNoteColor(color); setTimeout(()=>{ setNoteColor("#111"); noteAcc.setAttribute("fill","#111"); ledger.setAttribute("stroke","#111"); }, 240); }
