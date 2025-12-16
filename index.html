@@ -192,6 +192,8 @@
     const BASS_SHARP_OCT = [3,3,2,3,2,3,2];
     const BASS_FLAT_OCT = [2,3,2,3,2,3,2];
     const ANSWER_POOL = [ "DO","DO♯", "RE♭","RE","RE♯", "MI♭","MI", "FA","FA♯", "SOL♭","SOL","SOL♯", "LA♭","LA","LA♯", "SI♭","SI", "DO♮","RE♮","MI♮","FA♮","SOL♮","LA♮","SI♮" ];
+    const SOLFEGE_ORDER = { DO:0, RE:1, MI:2, FA:3, SOL:4, LA:5, SI:6 };
+    const ACC_RANK = { "♭":0, "":1, "♮":1, "♯":2 };
 
     function randInt(n){ return Math.floor(Math.random() * n); }
     function pick(arr){ return arr[randInt(arr.length)]; }
@@ -214,7 +216,9 @@
     function labelForExplicitNatural(letter){ return letterToSolfege[letter] + "♮"; }
     function armorText(){ if (difficulty===0 || keySig.count===0) return "—"; return keySig.type==="sharps" ? `${keySig.count} ♯` : `${keySig.count} ♭`; }
     function setKeySignatureVisual(clef){ keySigG.innerHTML=""; if (keySig.count===0) return; const isSharps = keySig.type==="sharps"; const letters = isSharps ? SHARP_ORDER : FLAT_ORDER; const octs = (clef==="treble") ? (isSharps ? TREBLE_SHARP_OCT : TREBLE_FLAT_OCT) : (isSharps ? BASS_SHARP_OCT : BASS_FLAT_OCT); const startX=150, stepX=16; for (let i=0;i<keySig.count;i++){ const L = letters[i]; const y = yForNote(clef, L, octs[i]); const t = document.createElementNS("http://www.w3.org/2000/svg","text"); t.setAttribute("x", String(startX + i*stepX)); t.setAttribute("y", String(y + 10)); t.setAttribute("font-size","30"); t.setAttribute("font-family","serif"); t.setAttribute("fill","#111"); t.textContent = isSharps ? "♯" : "♭"; keySigG.appendChild(t); } }
-    function buildChoices(correctLabel){ const set = new Set([correctLabel]); while (set.size < 9) set.add(pick(ANSWER_POOL)); const arr = Array.from(set); for (let i=arr.length-1;i>0;i--){ const j = randInt(i+1); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+    function choiceParts(label){ const acc = label.includes("♯") ? "♯" : label.includes("♭") ? "♭" : (label.includes("♮") ? "♮" : ""); const base = label.replace(/[♯♭♮]/g, ""); return { base, acc }; }
+    function choiceRank(label){ const { base, acc } = choiceParts(label); const baseRank = SOLFEGE_ORDER[base] ?? 99; const accRank = ACC_RANK[acc] ?? 9; return { baseRank, accRank, label }; }
+    function buildChoices(correctLabel){ const set = new Set([correctLabel]); while (set.size < 9) set.add(pick(ANSWER_POOL)); return Array.from(set).sort((a,b)=>{ const ra=choiceRank(a), rb=choiceRank(b); if (ra.baseRank!==rb.baseRank) return ra.baseRank - rb.baseRank; if (ra.accRank!==rb.accRank) return ra.accRank - rb.accRank; return ra.label.localeCompare(rb.label, "es"); }); }
     function renderAnswers(choices){ answersEl.innerHTML=""; choices.forEach((c,idx)=>{ const b=document.createElement("button"); b.textContent=c; b.title=`Tecla ${idx+1}`; b.disabled=!running; b.addEventListener("click",()=>answer(c)); answersEl.appendChild(b); }); }
     function pickNewKeySig(count){ keySig = { type: (Math.random()<0.5 ? "sharps" : "flats"), count }; }
     function applyTrollDifficulty(){ difficulty = clamp(strikes, 0, 2); if (difficulty===0) keySig = {type:"sharps",count:0}; else if (difficulty===1) pickNewKeySig(2); else pickNewKeySig(4); }
